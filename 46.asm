@@ -1,0 +1,93 @@
+segment code
+
+MOV AX, startSegment
+MOV DS, AX
+XOR ECX, ECX
+XOR EDX, EDX
+XOR EBX, EBX
+XOR SI, SI
+
+ADD_STEP:
+MOV BL, BYTE [SI]
+ADD EDX, EBX
+INC ECX
+INC SI
+CMP ECX, cmpNum
+JL ADD_STEP
+
+MOV [sum],EDX
+
+lab2:
+LEA EDI,[temp]
+MOV EBX, 10
+CIRCLE:
+MOV EDX, 0
+IDIV EBX
+CMP EDX, 0
+JZ lab3
+JMP lab4
+lab3:
+CMP EAX, 0
+JZ labout
+;
+lab4:
+ADD EDX,30H
+MOV [EDI],EDX
+INC EDI
+JMP CIRCLE
+
+labout:
+MOV BYTE [EDI], '$'
+
+MOV ESI, temp
+MOV EDI, result
+MOV ECX, 0
+circle1:
+CMP BYTE [ESI+ECX], '$'
+JZ lab5
+INC ECX
+JMP circle1
+lab5:
+MOV EDX, ECX
+DEC EDX
+lab6:
+MOV AL, [ESI+EDX]
+DEC EDX
+MOV [EDI], AL
+INC EDI
+CMP EDX, 0
+JGE lab6
+MOV AL, '$'
+MOV [EDI], AL
+
+XOR ECX,ECX
+MOV DX, result
+CALL PRINT
+
+MOV AH, 4CH
+INT 21H
+;
+
+PRINT:
+PUSH BX
+MOV BX, DX
+
+PRINT_1:
+MOV DL, [BX]
+INC BX
+CMP DL, '$'
+JZ PRINT_2
+MOV AH,2
+INT 21H
+JMP PRINT_1
+
+PRINT_2:
+POP BX
+RET
+
+segment data
+sum dd 0
+result db 0,0,0,0,0,0
+temp db 0,0,0,0,0,0
+startSegment dw 0xF000
+cmpNum dd 100D
