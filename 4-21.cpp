@@ -1,0 +1,110 @@
+#include<stdio.h>
+
+int main()
+{
+	char str1[0x100],str2[0x100];
+	scanf("%s",str1);
+	scanf("%s",str2);
+	int local = -1;
+	int n1,n2;
+	_asm{
+		LEA EAX, str1
+		PUSH EAX
+		CALL STRLEN
+		POP ECX
+		MOV EBX, EAX
+		MOV n1, EBX;
+		LEA EAX, str2
+		PUSH EAX
+		CALL STRLEN
+		POP ECX
+		MOV n2, EAX
+		;
+		XOR ECX, ECX
+
+	CIRCLE:
+		LEA EAX, str1
+		LEA EBX, str2
+		MOV EDX, n1
+		MOV EDI, n2
+		PUSH EDX
+		PUSH EDI
+		PUSH EAX
+		PUSH EBX
+		PUSH ECX
+		CALL FIND
+		POP ECX
+		POP EBX
+		POP ESI
+		POP EDI
+		POP EDX
+		CMP EAX, -1
+		JNZ LABOUT
+		INC ECX
+		CMP ECX, EDX
+		JL CIRCLE
+    LABOUT:
+		MOV local,EAX
+	}
+	printf("%d\n",local);
+	return 0;
+	_asm{
+	STRLEN:
+		PUSH EBP
+		MOV EBP, ESP
+		PUSH EDI
+		MOV EDI, [EBP+8]
+		XOR AL, AL
+		MOV ECX, -1
+		REPNZ SCASB
+		NOT ECX
+		DEC ECX
+		MOV EAX, ECX
+		POP EDI
+		POP EBP
+		RET
+	}
+	_asm{
+	FIND:
+		PUSH EBP
+		MOV EBP, ESP
+		PUSH ESI
+		PUSH EDI
+		MOV ECX, [EBP+8] //i
+		MOV ESI, [EBP+12]  //str2
+		MOV EDI, [EBP+16] //str1
+		MOV EAX, [EBP+20] //n2
+		MOV EBX, [EBP+24] //n1
+		MOV EDX, ECX
+		ADD EDX, EAX
+		CMP EDX, EBX
+		JG FIND_LABOUT2
+		MOV EDX, ECX
+		PUSH EDX
+		XOR ECX, ECX
+		ADD EDI, EDX
+	FIND_1:
+	    MOV BL, [EDI]
+		MOV DL, [ESI]
+		CMP BL,DL
+		JNE FIND_LABOUT1
+		INC ECX
+		INC ESI
+		INC EDI
+		CMP ECX, EAX
+		JL FIND_1
+		POP EDX
+		MOV EAX, EDX
+		INC EAX
+		JMP FIND_LABOUT
+    FIND_LABOUT1:
+		POP EDX
+	FIND_LABOUT2:
+		MOV EAX, -1
+    FIND_LABOUT:
+		POP EDI
+		POP ESI
+		POP EBP
+		RET
+	}
+}
